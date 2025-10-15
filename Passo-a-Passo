@@ -1,0 +1,85 @@
+•	Varredura de portas:
+
+o	Comando usado:
+
+nmap -sV -p 21 192.168.56.102 -Pn -oN nmap_ftp.txt
+
+o	Resultado esperado: porta 21/tcp aberta com serviço FTP (ex.: ftp / vsftpd informação de banner).
+
+•	Teste de login anônimo:
+
+o	Comando usado (cliente ftp):
+
+ftp 192.168.56.102 
+
+•	Teste de força bruta (confirmação de credenciais fracas):
+
+o	Comando Medusa :
+
+medusa -h 192.168.56.102 -U users.txt -P passwords.txt -M ftp -t 4
+
+o	Objetivo: verificar se usuários comuns têm senhas fracas.
+
+Evidências 
+
+•	Saída ftp mostrando 230 Login successful.
+
+•	Saída medusa mostrando credenciais encontradas.
+
+•	Listagem de diretório (ls) exibindo arquivos acessíveis para login anônimo.
+
+
+Riscos associados
+
+•	Exposição de arquivos sensíveis (backups, scripts com credenciais, etc.).
+
+•	Possibilidade de upload de arquivos maliciosos que permitam pivot ou execução local.
+
+•	Interceptação de credenciais (FTP não criptografado).
+
+•	Em ambiente real: perda de confidencialidade, integridade e disponibilidade.
+
+Recomendação de correção (passo-a-passo simples)
+
+1.	Forçar autenticação e senhas fortes
+
+o	Exigir contas com senhas fortes (política de senha: comprimento mínimo, complexidade, expirations).
+
+o	Remover/disable contas não usadas.
+
+2.	Chroot e princípio de menor privilégio
+
+o	Ativar chroot_local_user=YES para prender usuários aos seus diretórios.
+
+o	Configurar diretório home correto e permissões restritas.
+
+3.	Usar FTPS ou, preferencialmente, SFTP
+
+o	Habilitar TLS/SSL no servidor FTP (FTPS) ou migrar para SFTP (sobre SSH), que é preferível:
+
+Para vsftpd: ssl_enable=YES, force_local_data_ssl=YES, force_local_logins_ssl=YES e configurar certificados.
+
+o	Se migrar para SFTP, desabilitar daemon FTP e permitir acesso via SSH configurado.
+
+4.	Limitar acesso por firewall
+
+o	Restringir quem pode acessar porta 21: ufw/iptables para permitir apenas redes confiáveis (ex.: administração).
+
+o	Ex.: sudo ufw deny from any to any port 21 e permitir apenas IPs de gestão.
+
+5.	Detectar e prevenir tentativas de brute-force
+
+o	Instalar e configurar fail2ban para bloquear IPs após N tentativas falhas.
+
+6.	Auditoria e monitoramento
+
+o	Habilitar logs detalhados de FTP e revisar periodicamente.
+
+o	Monitorar uploads e arquivos colocados em diretórios públicos.
+
+7.	Atualizar software
+
+o	Garantir que o servidor FTP esteja atualizado (corrigir vulnerabilidades conhecidas).
+
+
+
